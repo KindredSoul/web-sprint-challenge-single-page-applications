@@ -1,5 +1,5 @@
 import React from "react";
-import { Router, Switch, Link } from "react-router-dom";
+import { Route, Switch, Link } from "react-router-dom";
 import Home from "./Home";
 import PizzaForm from "./PizzaForm";
 
@@ -9,18 +9,18 @@ const App = () => {
 			<nav>
 				<h1>Lambda Eats</h1>
 				<div>
-					<Link to="/"></Link>
-					<Link to="/pizza"></Link>
+					<Link to="/">Home</Link>
+					<Link to="/pizza">Order Pizza</Link>
 				</div>
 			</nav>
 			<div className="comp-container">
 				<Switch>
-					<Router path="/pizza">
+					<Route path="/pizza">
 						<PizzaForm />
-					</Router>
-					<Router path="/">
+					</Route>
+					<Route path="/">
 						<Home />
-					</Router>
+					</Route>
 				</Switch>
 			</div>
 		</>

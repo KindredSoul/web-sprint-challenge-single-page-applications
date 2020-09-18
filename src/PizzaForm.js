@@ -1,16 +1,18 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Axios from "axios";
 import Pizza from "./Pizza";
+import * as yup from "yup";
+import schema from "./PizzaSchema";
 
 const initialValues = {
 	username: "",
 	pizza_size: "",
-	toppings: [
-		{ topping1: false },
-		{ topping2: false },
-		{ topping3: false },
-		{ topping4: false },
-	],
+
+	topping1: false,
+	topping2: false,
+	topping3: false,
+	topping4: false,
+
 	details: "",
 };
 const initialErrors = {
@@ -27,9 +29,11 @@ function PizzaForm() {
 	const [disabled, setDisabled] = useState(initialDisabled);
 
 	const postPizzaOrder = (pizzaOrder) => {
-		Axios.post("", pizzaOrder)
+		Axios.post("https://reqres.in/api/users", pizzaOrder)
 			.then((res) => {
-				console.log(res);
+				console.log(res.data);
+				setPizzas([...pizzas, res.data]);
+				setPizzaValues(initialValues);
 			})
 			.catch((err) => {
 				console.log(err);
@@ -41,11 +45,49 @@ function PizzaForm() {
 		const newPizza = {
 			username: pizzaValues.username.trim(),
 			pizza_size: pizzaValues.pizza_size,
-			toppings: pizzaValues.toppings,
+			topping1: pizzaValues.topping1,
+			topping2: pizzaValues.topping2,
+			topping3: pizzaValues.topping3,
+			topping4: pizzaValues.topping4,
 			details: pizzaValues.details.trim(),
 		};
 		postPizzaOrder(newPizza);
 	};
+
+	const formValidate = (name, value) => {
+		yup
+			.reach(schema, name)
+			.validate(value)
+			.then((valid) => {
+				setPizzaErrors({
+					...pizzaErrors,
+					[name]: "",
+				});
+			})
+			.catch((err) => {
+				setPizzaErrors({
+					...pizzaErrors,
+					[name]: err.errors[0],
+				});
+			});
+	};
+
+	const formChange = (e) => {
+		const { name, value, type, selected, checked } = e.target;
+		const useValue =
+			type === "selected" ? selected : type === "checkbox" ? checked : value;
+		formValidate(name, useValue);
+		setPizzaValues({
+			...pizzaValues,
+			[name]: useValue,
+		});
+	};
+
+	useEffect(() => {
+		schema.isValid(pizzaValues).then((valid) => {
+			setDisabled(!valid);
+		});
+	}, [pizzaValues]);
 
 	return (
 		<div>
@@ -76,13 +118,13 @@ function PizzaForm() {
 						onChange={formChange}
 						name="pizza_size">
 						<option value="">- Select Your Size -</option>
-						<option value="">Large</option>
-						<option value="">Medium</option>
-						<option value="">Small</option>
+						<option value="Large">Large</option>
+						<option value="Medium">Medium</option>
+						<option value="Small">Small</option>
 					</select>
 				</label>
 				<label>
-					First Topping:{" "}
+					Pineapples:{" "}
 					<input
 						value={pizzaValues.topping1}
 						onChange={formChange}
@@ -91,7 +133,7 @@ function PizzaForm() {
 					/>
 				</label>
 				<label>
-					Second Topping:{" "}
+					Jalapenos:{" "}
 					<input
 						value={pizzaValues.topping2}
 						onChange={formChange}
@@ -100,7 +142,7 @@ function PizzaForm() {
 					/>
 				</label>
 				<label>
-					Third Topping:{" "}
+					Pepperoni:{" "}
 					<input
 						value={pizzaValues.topping3}
 						onChange={formChange}
@@ -109,7 +151,7 @@ function PizzaForm() {
 					/>
 				</label>
 				<label>
-					Fourth Topping:{" "}
+					Sausage:{" "}
 					<input
 						value={pizzaValues.topping4}
 						onChange={formChange}
@@ -124,8 +166,13 @@ function PizzaForm() {
 						onChange={formChange}
 						name="details"
 						type="textbox"
+						maxLength="100"
+						placeholder="Maximum of 100 characters"
 					/>
 				</label>
+				<button disabled={disabled} id="submitBtn">
+					Order
+				</button>
 			</form>
 		</div>
 	);
